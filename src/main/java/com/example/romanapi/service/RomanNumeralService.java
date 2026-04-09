@@ -30,7 +30,8 @@ public class RomanNumeralService {
             .mapToObj(
                 i ->
                     CompletableFuture.supplyAsync(
-                        () -> new ConversionItem(String.valueOf(i), converter.toRoman(i)), rangeExecutor))
+                        () -> new ConversionItem(String.valueOf(i), converter.toRoman(i)),
+                        rangeExecutor))
             .toList();
 
     CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
@@ -44,4 +45,3 @@ public class RomanNumeralService {
     return new RangeResponse(items);
   }
 }
-

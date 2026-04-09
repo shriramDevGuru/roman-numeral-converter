@@ -71,4 +71,3 @@ class RomanRequestValidatorTest {
         () -> validator.validate(Optional.empty(), Optional.of(3), Optional.of(2)));
   }
 }
-

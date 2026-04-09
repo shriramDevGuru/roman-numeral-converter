@@ -73,4 +73,3 @@ class ApiKeyAuthFilterTest {
     assertEquals("api-key", SecurityContextHolder.getContext().getAuthentication().getPrincipal());
   }
 }
-

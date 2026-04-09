@@ -4,15 +4,28 @@ server:
 spring:
   application:
     # Also used as OTLP resource service.name → New Relic entity / filter for metrics
-    name: ${APP_NAME:roman-numerals-service-local}
+    name: ${APP_NAME:roman-numerals-service}
+
+logging:
+  level:
+    root: INFO
+    com.example.romanapi: INFO
 
 management:
   endpoints:
     web:
       exposure:
         include: health,metrics
-  # Custom metrics (e.g. roman.* counters/timers) → New Relic via OTLP when enabled below.
-  # In NR: query in Metrics explorer (not only APM). EU accounts: use eu01 OTLP host.
+  metrics:
+    # JVM heap/GC/threads, process CPU/memory/uptime, system load (exported to OTLP when enabled)
+    enable:
+      jvm: true
+      process: true
+      system: true
+    tags:
+      application: ${spring.application.name}
+  # Custom + JVM/process meters → New Relic OTLP when NEW_RELIC_METRICS_EXPORT=true.
+  # With Docker + NR Java agent, set NEW_RELIC_METRICS_EXPORT=false to avoid duplicate JVM metrics.
   otlp:
     metrics:
       export:
@@ -22,7 +35,7 @@ management:
         headers:
           api-key: ${NEW_RELIC_LICENSE_KEY:}
         resource-attributes:
-          service.name: ${APP_NAME:roman-numerals-service-local}
+          service.name: ${APP_NAME:roman-numerals-service}
 
 app:
   api-key:

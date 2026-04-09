@@ -8,4 +8,3 @@ class RomanApiApplicationTests {
   @Test
   void contextLoads() {}
 }
-

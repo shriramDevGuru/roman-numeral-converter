@@ -11,7 +11,8 @@ public class RomanRequestValidator {
 
   public record Range(int min, int max) implements RequestMode {}
 
-  public RequestMode validate(Optional<Integer> query, Optional<Integer> min, Optional<Integer> max) {
+  public RequestMode validate(
+      Optional<Integer> query, Optional<Integer> min, Optional<Integer> max) {
     boolean hasQuery = query.isPresent();
     boolean hasMin = min.isPresent();
     boolean hasMax = max.isPresent();
@@ -46,4 +47,3 @@ public class RomanRequestValidator {
     }
   }
 }
-

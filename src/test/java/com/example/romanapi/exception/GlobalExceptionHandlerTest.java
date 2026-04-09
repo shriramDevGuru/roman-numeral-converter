@@ -41,4 +41,3 @@ class GlobalExceptionHandlerTest {
     assertEquals("internal server error", resp.getBody().get("error"));
   }
 }
-

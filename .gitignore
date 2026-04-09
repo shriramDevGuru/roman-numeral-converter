@@ -26,4 +26,7 @@ replay_pid*
 # Environment variables
 .env
 
+# New Relic Java agent (from scripts/download-newrelic-agent.sh); do not commit
+newrelic/
+
 target/

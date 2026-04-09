@@ -26,4 +26,3 @@ class RomanNumeralConverterTest {
     assertThrows(IllegalArgumentException.class, () -> converter.toRoman(4000));
   }
 }
-

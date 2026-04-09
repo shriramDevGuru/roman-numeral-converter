@@ -22,4 +22,3 @@ public class AsyncConfig {
     return Executors.newFixedThreadPool(threads);
   }
 }
-

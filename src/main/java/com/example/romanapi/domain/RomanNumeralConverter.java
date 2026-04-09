@@ -39,4 +39,3 @@ public class RomanNumeralConverter {
 
   private record Entry(int value, String symbol) {}
 }
-

@@ -39,4 +39,3 @@ public class ApiMetrics {
     sample.stop(requestLatency);
   }
 }
-

@@ -9,4 +9,3 @@ public class RomanApiApplication {
     SpringApplication.run(RomanApiApplication.class, args);
   }
 }
-

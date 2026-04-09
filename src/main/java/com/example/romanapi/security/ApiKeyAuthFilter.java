@@ -1,5 +1,6 @@
 package com.example.romanapi.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,7 +16,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ApiKeyAuthFilter extends OncePerRequestFilter {
   private static final Logger log = LoggerFactory.getLogger(ApiKeyAuthFilter.class);
@@ -67,4 +67,3 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     mapper.writeValue(response.getWriter(), Map.of("error", message));
   }
 }
-

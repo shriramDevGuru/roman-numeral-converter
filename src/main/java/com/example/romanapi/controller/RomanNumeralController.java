@@ -36,4 +36,3 @@ public class RomanNumeralController {
     return ResponseEntity.ok(body);
   }
 }
-

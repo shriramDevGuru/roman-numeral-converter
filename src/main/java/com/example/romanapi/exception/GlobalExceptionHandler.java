@@ -29,7 +29,8 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(MissingServletRequestParameterException.class)
-  public ResponseEntity<Map<String, String>> handleMissingParam(MissingServletRequestParameterException ex) {
+  public ResponseEntity<Map<String, String>> handleMissingParam(
+      MissingServletRequestParameterException ex) {
     metrics.incInvalid();
     log.warn("validation_failed message={}", "missing required parameters");
     return json(HttpStatus.BAD_REQUEST, "missing required parameters");
@@ -54,4 +55,3 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(Map.of("error", message), headers, status);
   }
 }
-

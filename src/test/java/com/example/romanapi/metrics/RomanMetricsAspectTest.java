@@ -19,7 +19,8 @@ class RomanMetricsAspectTest {
     RomanMetricsAspect aspect = new RomanMetricsAspect(metrics);
 
     ProceedingJoinPoint pjp = mock(ProceedingJoinPoint.class);
-    when(pjp.getArgs()).thenReturn(new Object[] {Optional.of(1), Optional.empty(), Optional.empty()});
+    when(pjp.getArgs())
+        .thenReturn(new Object[] {Optional.of(1), Optional.empty(), Optional.empty()});
     when(pjp.proceed()).thenReturn("ok");
 
     aspect.aroundRomanEndpoint(pjp);
@@ -53,7 +54,8 @@ class RomanMetricsAspectTest {
     RomanMetricsAspect aspect = new RomanMetricsAspect(metrics);
 
     ProceedingJoinPoint pjp = mock(ProceedingJoinPoint.class);
-    when(pjp.getArgs()).thenReturn(new Object[] {Optional.empty(), Optional.empty(), Optional.empty()});
+    when(pjp.getArgs())
+        .thenReturn(new Object[] {Optional.empty(), Optional.empty(), Optional.empty()});
     when(pjp.proceed()).thenThrow(new RuntimeException("boom"));
 
     assertThrows(RuntimeException.class, () -> aspect.aroundRomanEndpoint(pjp));
@@ -62,4 +64,3 @@ class RomanMetricsAspectTest {
     assertEquals(0.0, registry.counter("roman.range.requests").count());
   }
 }
-

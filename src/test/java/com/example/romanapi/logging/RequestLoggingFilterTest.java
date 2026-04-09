@@ -48,4 +48,3 @@ class RequestLoggingFilterTest {
     assertNull(MDC.get("requestId"));
   }
 }
-

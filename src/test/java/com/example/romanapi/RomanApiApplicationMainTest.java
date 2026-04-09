@@ -10,4 +10,3 @@ class RomanApiApplicationMainTest {
     RomanApiApplication.main(new String[] {});
   }
 }
-

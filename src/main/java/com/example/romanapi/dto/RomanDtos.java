@@ -11,4 +11,3 @@ public final class RomanDtos {
 
   public record RangeResponse(List<ConversionItem> conversions) {}
 }
-

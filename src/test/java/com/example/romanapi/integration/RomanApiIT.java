@@ -10,12 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.core.ParameterizedTypeReference;
 
 @SpringBootTest(
     classes = RomanApiApplication.class,
@@ -43,8 +43,7 @@ class RomanApiIT {
 
   @Test
   void romannumeralRequiresApiKey() {
-    ResponseEntity<String> resp =
-        rest.getForEntity(url("/romannumeral?query=9"), String.class);
+    ResponseEntity<String> resp = rest.getForEntity(url("/romannumeral?query=9"), String.class);
     assertEquals(HttpStatus.UNAUTHORIZED, resp.getStatusCode());
   }
 
@@ -77,8 +76,7 @@ class RomanApiIT {
 
   @Test
   void metricsAreProtected() {
-    ResponseEntity<String> resp =
-        rest.getForEntity(url("/actuator/metrics"), String.class);
+    ResponseEntity<String> resp = rest.getForEntity(url("/actuator/metrics"), String.class);
     assertEquals(HttpStatus.UNAUTHORIZED, resp.getStatusCode());
 
     ResponseEntity<Map<String, Object>> ok =
@@ -100,4 +98,3 @@ class RomanApiIT {
     return h;
   }
 }
-

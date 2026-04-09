@@ -21,4 +21,3 @@ class RomanNumeralServiceTest {
     assertEquals("V", res.conversions().get(4).output());
   }
 }
-

@@ -58,4 +58,3 @@ class RomanNumeralControllerTest {
         .andExpect(jsonPath("$.error").exists());
   }
 }
-
