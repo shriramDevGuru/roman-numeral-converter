@@ -1,0 +1,56 @@
+services:
+  roman-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: roman-api
+    env_file:
+      - .env
+    volumes:
+      # New Relic Java agent: unzip NR zip so ./newrelic/newrelic.jar exists (see scripts/download-newrelic-agent.sh)
+      - ./newrelic:/opt/newrelic:ro
+    ports:
+      # Host and container port must match server.port (${PORT:8080} in application.yml)
+      - "${PORT:-8080}:${PORT:-8080}"
+    # Compose-only NR attach (no NR-specific Dockerfile). Override image entrypoint when using compose.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        if [ "$${DISABLE_NEW_RELIC_AGENT:-false}" = "true" ]; then
+          exec java -XX:+UseContainerSupport -jar /app/app.jar
+        fi
+        if [ ! -f /opt/newrelic/newrelic.jar ]; then
+          echo "newrelic: /opt/newrelic/newrelic.jar missing (run scripts/download-newrelic-agent.sh or set DISABLE_NEW_RELIC_AGENT=true)" >&2
+          exec java -XX:+UseContainerSupport -jar /app/app.jar
+        fi
+        NR_APP="$${NEW_RELIC_APP_NAME:-}"
+        if [ -z "$$NR_APP" ]; then
+          NR_APP="$${APP_NAME:-roman-numerals-service}"
+        fi
+        exec java \
+          -javaagent:/opt/newrelic/newrelic.jar \
+          -Dnewrelic.config.app_name="$$NR_APP" \
+          -Dnewrelic.config.application_logging.enabled=true \
+          -Dnewrelic.config.application_logging.forwarding.enabled=true \
+          -XX:+UseContainerSupport \
+          -jar /app/app.jar
+
+  # Not started by default; use: docker compose --profile ci run --rm test|coverage
+  test:
+    profiles:
+      - ci
+    image: maven:3.9.9-eclipse-temurin-17
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    command: mvn -q test
+
+  coverage:
+    profiles:
+      - ci
+    image: maven:3.9.9-eclipse-temurin-17
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    command: mvn -q verify
