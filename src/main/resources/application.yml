@@ -1,0 +1,33 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    # Also used as OTLP resource service.name → New Relic entity / filter for metrics
+    name: ${APP_NAME:roman-numerals-service-local}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+  # Custom metrics (e.g. roman.* counters/timers) → New Relic via OTLP when enabled below.
+  # In NR: query in Metrics explorer (not only APM). EU accounts: use eu01 OTLP host.
+  otlp:
+    metrics:
+      export:
+        enabled: ${NEW_RELIC_METRICS_EXPORT:false}
+        url: ${NEW_RELIC_OTLP_METRICS_URL:https://otlp.nr-data.net/v1/metrics}
+        step: ${NEW_RELIC_METRICS_STEP:60s}
+        headers:
+          api-key: ${NEW_RELIC_LICENSE_KEY:}
+        resource-attributes:
+          service.name: ${APP_NAME:roman-numerals-service-local}
+
+app:
+  api-key:
+    header: ${API_KEY_HEADER:x-api-key}
+    value: ${APP_API_KEY:}
+  range-executor:
+    threads: ${RANGE_EXECUTOR_THREADS:0}
+
