@@ -2,6 +2,9 @@
 
 Spring Boot 3 REST service that converts integers **1–3999** to Roman numerals, with API-key security, validation, async range conversion, Micrometer metrics, optional New Relic export, and OpenAPI (Swagger UI).
 
+**Scope clarification:** This project focuses on the core Roman numeral conversion API requirements.
+The additional pieces (API key auth, metrics/observability, Docker, and optional New Relic integration) are production-oriented enhancements to show how the service could be run and reviewed in a real environment.
+
 ---
 
 ### Table of contents
@@ -25,11 +28,11 @@ Spring Boot 3 REST service that converts integers **1–3999** to Roman numerals
 |------|---------|
 | **REST API** | `GET /romannumeral` — single integer (`query`) or inclusive range (`min` & `max`) |
 | **Domain** | Pure converter `1…3999` → Roman string; range results **sorted ascending** |
-| **Concurrency** | Range uses `CompletableFuture` + fixed `Executor`; pool size from `RANGE_EXECUTOR_THREADS` or CPU-based default |
+| **Concurrency** | Range uses `CompletableFuture` + thread pool `Executor`; pool size from `RANGE_EXECUTOR_THREADS` or CPU-based default |
 | **Security** | Stateless API key filter (`API_KEY_HEADER` / `APP_API_KEY`); role `API` for protected routes |
-| **Validation** | Shared `RomanRequestValidator`; invalid input → **400** + JSON `{ "error": "…" }` |
-| **Observability** | Request MDC `requestId` (from `x-request-id` or generated), structured Logback; **Micrometer** custom meters + JVM/process/system |
-| **Metrics** | Servlet filter (`RomanMetricsFilter`) records `roman.request.latency` and increments `roman.single.requests`, `roman.range.requests`, and `roman.invalid.requests` |
+| **Validation** | Shared `RomanRequestValidator`; invalid inputs return **400** with JSON `{ "error": "…" }` |
+| **Observability** | Structured logs include `requestId` (taken from `x-request-id` if provided, otherwise generated); **Micrometer** custom meters + JVM/process/system |
+| **Metrics** | Servlet filter (`RomanMetricsFilter`) records `roman.request.latency` and increments `roman.single.requests`, `roman.range.requests`, and `roman.invalid.requests` (**400 responses** for `/romannumeral`) |
 | **Actuator** | `/actuator/health` (public), `/actuator/metrics` (protected, same API key) |
 | **New Relic (optional)** | Micrometer **OTLP** to New Relic (`NEW_RELIC_METRICS_EXPORT`); **Java agent** mounted via Compose (`./newrelic` → `/opt/newrelic`) for APM/logs |
 | **Docs** | **springdoc-openapi** — Swagger UI + OpenAPI 3 JSON |
@@ -53,17 +56,27 @@ flowchart LR
     VAL[RomanRequestValidator]
     SVC[RomanNumeralService]
     DOM[RomanNumeralConverter]
-    MET[AOP / ApiMetrics]
+    MET[RomanMetricsFilter / ApiMetrics]
     ACT[Actuator]
   end
   C --> SEC
   SEC --> LOG
-  LOG --> CTL
+  LOG --> MET
+  MET --> CTL
   CTL --> VAL
   CTL --> SVC
   SVC --> DOM
-  CTL --> MET
   SEC --> ACT
+
+  classDef client fill:#eef6ff,stroke:#5b8def,color:#0b2a4a;
+  classDef security fill:#fff1f2,stroke:#e11d48,color:#3f0a17;
+  classDef infra fill:#f1f5f9,stroke:#64748b,color:#0f172a;
+  classDef app fill:#ecfdf5,stroke:#10b981,color:#064e3b;
+
+  class C client;
+  class SEC security;
+  class LOG,MET,ACT infra;
+  class CTL,VAL,SVC,DOM app;
 ```
 
 Range conversion uses an **executor-backed** async path; Micrometer counters + request latency are recorded in a servlet filter around `/romannumeral`.
@@ -181,6 +194,11 @@ From the repository root:
 | Auto-format | `mvn spotless:apply` |
 | Unit tests | `mvn test` |
 | Full verify (unit + IT + JaCoCo) | `mvn verify` |
+
+Tests cover:
+- **Valid inputs** (single and range)
+- **Edge cases** (e.g. 1, 4, 9, 40, 90, 400, 900, 3999)
+- **Invalid inputs** (missing params, mixed mode, out-of-range values) and consistent JSON error responses
 
 After `mvn verify`, open:
 
@@ -308,7 +326,7 @@ Use **Authorize** in Swagger UI if operations are documented with the API key se
 |---------|--------|
 | **Spring Boot Actuator** | `/actuator/health`, `/actuator/metrics` (metrics endpoint requires API key) |
 | **Micrometer** | JVM, process, system meters; custom `roman.*` counters/timer |
-| **Request correlation** | Optional header `x-request-id`; otherwise a UUID is generated and logged (MDC `requestId`) |
+| **Request correlation** | Optional header `x-request-id`; if absent/blank a UUID is generated. The value is logged as MDC `requestId` for log correlation. |
 | **New Relic OTLP** | Set `NEW_RELIC_METRICS_EXPORT=true` and `NEW_RELIC_LICENSE_KEY` in `.env`; US endpoint default in `application.yml` |
 | **New Relic Java agent (implemented)** | Compose mounts `./newrelic`; JVM flags set in `docker-compose.yml` for app name + log forwarding. Set `NEW_RELIC_LICENSE_KEY`, `NEW_RELIC_APP_NAME` (or rely on `APP_NAME`). Use `DISABLE_NEW_RELIC_AGENT=true` to skip the agent. |
 
@@ -344,8 +362,11 @@ Use **Authorize** in Swagger UI if operations are documented with the API key se
 
 ### Validation and errors
 
-- Provide **`query`** **or** both **`min`** and **`max`** (not both modes at once in a way that violates the validator rules).
-- Integers must be in **1–3999**; for range, **`min < max`**.
+- Choose **one mode**:
+  - **Single**: provide `query=<int>`
+  - **Range**: provide both `min=<int>&max=<int>` (inclusive)
+- Do **not** mix modes (e.g. `query` with `min/max`).
+- Integers must be in **1–3999**; for range, require **`min < max`** (a minimum of 2 values per range request).
 - On failure, the API returns **400** with JSON: `{ "error": "<message>" }`.
 
 <details>
