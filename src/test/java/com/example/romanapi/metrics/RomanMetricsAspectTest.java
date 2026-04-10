@@ -48,6 +48,42 @@ class RomanMetricsAspectTest {
   }
 
   @Test
+  void neitherIncrementsWhenOnlyMinProvided() throws Throwable {
+    SimpleMeterRegistry registry = new SimpleMeterRegistry();
+    ApiMetrics metrics = new ApiMetrics(registry);
+    RomanMetricsAspect aspect = new RomanMetricsAspect(metrics);
+
+    ProceedingJoinPoint pjp = mock(ProceedingJoinPoint.class);
+    when(pjp.getArgs())
+        .thenReturn(new Object[] {Optional.empty(), Optional.of(1), Optional.empty()});
+    when(pjp.proceed()).thenReturn("ok");
+
+    aspect.aroundRomanEndpoint(pjp);
+
+    assertEquals(0.0, registry.counter("roman.single.requests").count());
+    assertEquals(0.0, registry.counter("roman.range.requests").count());
+    assertEquals(1, registry.timer("roman.request.latency").count());
+  }
+
+  @Test
+  void neitherIncrementsWhenNoQueryOrRangeButProceedCompletes() throws Throwable {
+    SimpleMeterRegistry registry = new SimpleMeterRegistry();
+    ApiMetrics metrics = new ApiMetrics(registry);
+    RomanMetricsAspect aspect = new RomanMetricsAspect(metrics);
+
+    ProceedingJoinPoint pjp = mock(ProceedingJoinPoint.class);
+    when(pjp.getArgs())
+        .thenReturn(new Object[] {Optional.empty(), Optional.empty(), Optional.empty()});
+    when(pjp.proceed()).thenReturn("ok");
+
+    aspect.aroundRomanEndpoint(pjp);
+
+    assertEquals(0.0, registry.counter("roman.single.requests").count());
+    assertEquals(0.0, registry.counter("roman.range.requests").count());
+    assertEquals(1, registry.timer("roman.request.latency").count());
+  }
+
+  @Test
   void stillStopsTimerWhenProceedThrows() throws Throwable {
     SimpleMeterRegistry registry = new SimpleMeterRegistry();
     ApiMetrics metrics = new ApiMetrics(registry);

@@ -33,6 +33,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/actuator/metrics/**")
                     .hasRole("API")
+                    .requestMatchers("/__it/**")
+                    .hasRole("API")
                     .requestMatchers("/romannumeral")
                     .hasRole("API")
                     .anyRequest()

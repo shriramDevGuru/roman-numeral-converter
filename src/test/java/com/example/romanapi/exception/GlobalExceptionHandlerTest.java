@@ -40,4 +40,14 @@ class GlobalExceptionHandlerTest {
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, resp.getStatusCode());
     assertEquals("internal server error", resp.getBody().get("error"));
   }
+
+  @Test
+  void returnsJsonForIllegalArgument() {
+    SimpleMeterRegistry registry = new SimpleMeterRegistry();
+    GlobalExceptionHandler handler = new GlobalExceptionHandler(new ApiMetrics(registry));
+
+    var resp = handler.handleIllegalArgument(new IllegalArgumentException("bad arg"));
+    assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+    assertEquals("bad arg", resp.getBody().get("error"));
+  }
 }

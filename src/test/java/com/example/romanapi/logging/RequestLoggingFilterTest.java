@@ -31,6 +31,24 @@ class RequestLoggingFilterTest {
   }
 
   @Test
+  void generatesRequestIdWhenHeaderBlank() throws Exception {
+    RequestLoggingFilter filter = new RequestLoggingFilter();
+
+    MockHttpServletRequest req = new MockHttpServletRequest("GET", "/romannumeral");
+    req.addHeader("x-request-id", "   ");
+    MockHttpServletResponse res = new MockHttpServletResponse();
+
+    FilterChain chain =
+        (ServletRequest request, ServletResponse response) -> {
+          String id = MDC.get("requestId");
+          assertEquals(false, id == null || id.isBlank());
+        };
+
+    filter.doFilter(req, res, chain);
+    assertNull(MDC.get("requestId"));
+  }
+
+  @Test
   void generatesRequestIdWhenMissing() throws Exception {
     RequestLoggingFilter filter = new RequestLoggingFilter();
 

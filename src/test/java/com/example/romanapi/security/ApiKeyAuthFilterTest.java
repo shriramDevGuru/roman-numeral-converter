@@ -33,6 +33,86 @@ class ApiKeyAuthFilterTest {
   }
 
   @Test
+  void skipsActuatorHealth() throws Exception {
+    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "k");
+    FilterChain chain = mock(FilterChain.class);
+
+    MockHttpServletRequest req = new MockHttpServletRequest("GET", "/actuator/health");
+    MockHttpServletResponse res = new MockHttpServletResponse();
+    filter.doFilter(req, res, chain);
+
+    verify(chain).doFilter(req, res);
+  }
+
+  @Test
+  void skipsV3ApiDocs() throws Exception {
+    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "k");
+    FilterChain chain = mock(FilterChain.class);
+
+    MockHttpServletRequest req = new MockHttpServletRequest("GET", "/v3/api-docs");
+    MockHttpServletResponse res = new MockHttpServletResponse();
+    filter.doFilter(req, res, chain);
+
+    verify(chain).doFilter(req, res);
+  }
+
+  @Test
+  void returns401WhenExpectedKeyIsNull() throws Exception {
+    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", null);
+    FilterChain chain = mock(FilterChain.class);
+
+    MockHttpServletRequest req = new MockHttpServletRequest("GET", "/romannumeral");
+    req.addHeader("x-api-key", "any");
+    MockHttpServletResponse res = new MockHttpServletResponse();
+    filter.doFilter(req, res, chain);
+
+    assertEquals(401, res.getStatus());
+    verifyNoInteractions(chain);
+  }
+
+  @Test
+  void returns401WhenPresentedKeyDoesNotMatch() throws Exception {
+    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "expected");
+    FilterChain chain = mock(FilterChain.class);
+
+    MockHttpServletRequest req = new MockHttpServletRequest("GET", "/romannumeral");
+    req.addHeader("x-api-key", "wrong");
+    MockHttpServletResponse res = new MockHttpServletResponse();
+    filter.doFilter(req, res, chain);
+
+    assertEquals(401, res.getStatus());
+    verifyNoInteractions(chain);
+  }
+
+  @Test
+  void returns401WhenPresentedKeyIsBlank() throws Exception {
+    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "expected");
+    FilterChain chain = mock(FilterChain.class);
+
+    MockHttpServletRequest req = new MockHttpServletRequest("GET", "/romannumeral");
+    req.addHeader("x-api-key", "   ");
+    MockHttpServletResponse res = new MockHttpServletResponse();
+    filter.doFilter(req, res, chain);
+
+    assertEquals(401, res.getStatus());
+    verifyNoInteractions(chain);
+  }
+
+  @Test
+  void readsConfiguredHeaderName() throws Exception {
+    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("custom-key", "secret");
+    FilterChain chain = mock(FilterChain.class);
+
+    MockHttpServletRequest req = new MockHttpServletRequest("GET", "/romannumeral");
+    req.addHeader("x-api-key", "secret");
+    MockHttpServletResponse res = new MockHttpServletResponse();
+    filter.doFilter(req, res, chain);
+
+    assertEquals(401, res.getStatus());
+    verifyNoInteractions(chain);
+  }
+
+  @Test
   void returns401WhenServerKeyNotConfigured() throws Exception {
     ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "");
     FilterChain chain = mock(FilterChain.class);

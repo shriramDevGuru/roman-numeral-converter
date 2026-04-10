@@ -10,6 +10,18 @@ import org.springframework.mock.env.MockEnvironment;
 class AsyncConfigTest {
 
   @Test
+  void usesDefaultPoolWhenThreadsNotSet() {
+    MockEnvironment env = new MockEnvironment();
+
+    AsyncConfig cfg = new AsyncConfig(env);
+    Executor ex = cfg.rangeExecutor();
+
+    ThreadPoolExecutor tpe = (ThreadPoolExecutor) ex;
+    assertEquals(true, tpe.getCorePoolSize() >= 2);
+    tpe.shutdownNow();
+  }
+
+  @Test
   void usesConfiguredThreadCountWhenProvided() {
     MockEnvironment env = new MockEnvironment();
     env.setProperty("app.range-executor.threads", "5");

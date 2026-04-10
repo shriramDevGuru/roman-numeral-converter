@@ -10,6 +10,7 @@ class RomanNumeralConverterTest {
 
   @Test
   void convertsEdgeCases() {
+    assertEquals("M", converter.toRoman(1000));
     assertEquals("I", converter.toRoman(1));
     assertEquals("IV", converter.toRoman(4));
     assertEquals("IX", converter.toRoman(9));
@@ -18,6 +19,10 @@ class RomanNumeralConverterTest {
     assertEquals("CD", converter.toRoman(400));
     assertEquals("CMXLIV", converter.toRoman(944));
     assertEquals("MMMCMXCIX", converter.toRoman(3999));
+    assertEquals("MMM", converter.toRoman(3000));
+    assertEquals("MM", converter.toRoman(2000));
+    assertEquals("VII", converter.toRoman(7));
+    assertEquals("MD", converter.toRoman(1500));
   }
 
   @Test
