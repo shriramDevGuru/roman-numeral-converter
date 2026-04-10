@@ -348,6 +348,13 @@ Use **Authorize** in Swagger UI if operations are documented with the API key se
 - Integers must be in **1–3999**; for range, **`min < max`**.
 - On failure, the API returns **400** with JSON: `{ "error": "<message>" }`.
 
+<details>
+<summary>Validation error example screenshot</summary>
+
+![Validation error response](docs/images/api-error-response.png)
+
+</details>
+
 ---
 
 ### Future enhancements
@@ -356,17 +363,14 @@ The current implementation focuses on correctness, testability, and observabilit
 
 #### 1. Security and authentication
 
-- Introduce OAuth2/OIDC-based authentication and authorization
-- Support machine-to-machine (M2M) access using OAuth2 Client Credentials flow
-- Integrate with an external identity provider such as AWS Cognito
-- Configure the service as a resource server validating JWT access tokens
-- Implement scope-based authorization (e.g. `roman.read`, `roman.range`)
+Authentication is **API key**–based today. If requirements change, alternatives could include OAuth2/OIDC, JWT (e.g. resource server), AWS Cognito, or M2M client credentials.
+
+If you **keep API keys**, prefer handling **issuance, rotation, and revocation** in a dedicated place—such as an **API gateway**, a small **auth service**, or **AWS Secrets Manager** / similar—rather than embedding long-lived keys only in application config. That gives teams a clear process for key lifecycle and limits blast radius when a key leaks.
 
 #### 2. Observability and monitoring
 
-- Build on existing New Relic integration (APM, logs, Micrometer OTLP metrics where enabled)
-- Broaden OpenTelemetry usage beyond metrics (e.g. traces and log correlation via OTLP) or consolidate on a single collector
-- Add distributed tracing for end-to-end request visibility
+- Build on existing New Relic integration: **Micrometer OTLP metrics** (when enabled), plus **APM, traces, and log forwarding** from the New Relic Java agent in Docker—so request-level visibility and correlation are already in place when the agent is used
+- Optional hardening: unify export paths (e.g. one collector or OTLP strategy) if you adopt a broader OpenTelemetry standard across services
 - Define alerts and dashboards for error rates, latency, and throughput
 - Create New Relic alerts (e.g. high error rate, high latency, elevated 5xx, JVM memory pressure)
 
@@ -374,9 +378,9 @@ The current implementation focuses on correctness, testability, and observabilit
 
 - Introduce load and stress testing using tools such as JMeter or k6
 - Measure system behavior under concurrent range requests
-- Benchmark latency and throughput for different input sizes
+- Characterize **latency** (response time) and **throughput** (requests per second) under load—for example comparing small single-`query` calls vs large `min`/`max` ranges—to find limits and tune the range executor
 - Identify bottlenecks and optimize thread pool configuration
-- Add rate limiting to protect against excessive load
+- Add rate limiting to protect against excessive load (often implemented at an **API gateway** or edge layer rather than in the app alone)
 
 #### 4. Deployment and infrastructure
 
@@ -384,28 +388,23 @@ The service is **already containerized** (multi-stage `Dockerfile`, `docker comp
 
 - Publish images to a registry (e.g. Amazon ECR, GHCR) with immutable version tags and vulnerability scanning
 - Deploy to AWS (ECS/Fargate, EKS, or EC2) with health checks, autoscaling, and rolling updates
-- Use AWS CloudWatch (or equivalent) for centralized logging and platform metrics alongside application telemetry
 - Manage infrastructure as code (e.g. Terraform, CloudFormation)
-- Store secrets in AWS Secrets Manager or Parameter Store instead of plain `.env` in production
+- Store secrets in AWS Secrets Manager or Parameter Store in production
 
 #### 5. Scalability and performance optimization
 
-- Introduce caching (e.g. Redis) for frequently requested conversions
-- Optimize parallel execution strategy for range queries
-- Add horizontal scaling behind a load balancer
-- Implement circuit breakers and resilience patterns
+- **Range parallelization:** today each integer in `min`…`max` is converted on a **fixed thread pool** (`CompletableFuture` per value, capped by `RANGE_EXECUTOR_THREADS` or a default). Under load or for very wide ranges, you might revisit **how work is split** (e.g. fewer, larger chunks instead of one task per number), **pool sizing**, or **limits** on range size so one request cannot schedule an extreme number of concurrent tasks—guided by profiling and load tests
+- Add horizontal scaling behind a load balancer when load tests and latency or SLO targets show the single instance is insufficient
 
 #### 6. API and feature enhancements
 
-- Add reverse conversion (Roman → integer)
-- Support batch conversion APIs
 - Introduce API versioning strategy
-- Enhance error handling with structured error responses
-- Introduce pagination for future endpoints that may return larger datasets (e.g. conversion history, batch jobs, administrative reporting)
+- Introduce pagination for future endpoints that may return larger datasets
 
 #### 7. Code quality and CI/CD
 
 - Add CI pipelines (e.g. GitHub Actions) that run `mvn verify`, Spotless, and Docker image builds on every PR
 - Integrate static analysis tools such as SonarQube
 - Gate merges on quality checks and keep Spotless/Java style enforcement in CI
+- Require **two approvers** on pull requests before merge (in addition to passing CI)
 

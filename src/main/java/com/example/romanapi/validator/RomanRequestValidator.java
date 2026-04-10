@@ -17,6 +17,10 @@ public class RomanRequestValidator {
     boolean hasMin = min.isPresent();
     boolean hasMax = max.isPresent();
 
+    // Exactly one request mode must be used:
+    // - single: query=<int>
+    // - range:  min=<int>&max=<int>
+    // Any mix (query with min/max) or missing params is rejected.
     if (hasQuery == (hasMin || hasMax)) {
       throw new InvalidRequestException("use either query or min and max");
     }

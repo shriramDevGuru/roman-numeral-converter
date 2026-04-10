@@ -25,6 +25,8 @@ public class RomanNumeralService {
   }
 
   public RangeResponse convertRange(int min, int max) {
+    // Range conversion is CPU-bound but parallelizable; we fan out work to a fixed executor
+    // to cap concurrency and avoid unbounded common-pool usage under load.
     List<CompletableFuture<ConversionItem>> futures =
         java.util.stream.IntStream.rangeClosed(min, max)
             .mapToObj(
@@ -36,6 +38,7 @@ public class RomanNumeralService {
 
     CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
+    // Collect results deterministically (ascending by input) even though futures may complete out of order.
     List<ConversionItem> items =
         futures.stream()
             .map(CompletableFuture::join)

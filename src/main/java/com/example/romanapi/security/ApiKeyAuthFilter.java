@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -30,8 +31,13 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
   }
 
   @Override
-  protected boolean shouldNotFilter(HttpServletRequest request) {
+  protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
     String path = request.getRequestURI();
+    if (path == null) {
+      path = "";
+    }
+    // Keep docs and health endpoints publicly accessible so the service is easy to validate
+    // and explore even before API key distribution.
     return matcher.match("/actuator/health", path)
         || matcher.match("/swagger-ui/**", path)
         || matcher.match("/v3/api-docs/**", path);
@@ -39,9 +45,12 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      @NonNull HttpServletRequest request,
+      @NonNull HttpServletResponse response,
+      @NonNull FilterChain filterChain)
       throws ServletException, IOException {
     if (expectedValue == null || expectedValue.isBlank()) {
+      // Misconfiguration should be obvious: protected endpoints are effectively down until APP_API_KEY is set.
       log.error("auth_failed reason=missing_api_key_config");
       reject(response, "server missing API key configuration");
       return;
