@@ -6,6 +6,10 @@ spring:
     # Also used as OTLP resource service.name → New Relic entity / filter for metrics
     name: ${APP_NAME:roman-numerals-service}
 
+springdoc:
+  swagger-ui:
+    persistAuthorization: true
+
 logging:
   level:
     root: INFO

@@ -26,4 +26,3 @@ public class OpenApiConfig {
         .addSecurityItem(new SecurityRequirement().addList(API_KEY_SCHEME_NAME));
   }
 }
-
