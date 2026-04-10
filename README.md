@@ -29,7 +29,7 @@ Spring Boot 3 REST service that converts integers **1–3999** to Roman numerals
 | **Security** | Stateless API key filter (`API_KEY_HEADER` / `APP_API_KEY`); role `API` for protected routes |
 | **Validation** | Shared `RomanRequestValidator`; invalid input → **400** + JSON `{ "error": "…" }` |
 | **Observability** | Request MDC `requestId` (from `x-request-id` or generated), structured Logback; **Micrometer** custom meters + JVM/process/system |
-| **Metrics** | AOP (`RomanMetricsAspect`) around controller: `roman.single.requests`, `roman.range.requests`, `roman.invalid.requests`, `roman.request.latency` |
+| **Metrics** | Servlet filter (`RomanMetricsFilter`) records `roman.request.latency` and increments `roman.single.requests`, `roman.range.requests`, and `roman.invalid.requests` |
 | **Actuator** | `/actuator/health` (public), `/actuator/metrics` (protected, same API key) |
 | **New Relic (optional)** | Micrometer **OTLP** to New Relic (`NEW_RELIC_METRICS_EXPORT`); **Java agent** mounted via Compose (`./newrelic` → `/opt/newrelic`) for APM/logs |
 | **Docs** | **springdoc-openapi** — Swagger UI + OpenAPI 3 JSON |
@@ -66,7 +66,7 @@ flowchart LR
   SEC --> ACT
 ```
 
-Range conversion uses an **executor-backed** async path; Micrometer timers/counters are recorded via **AOP** on the controller.
+Range conversion uses an **executor-backed** async path; Micrometer counters + request latency are recorded in a servlet filter around `/romannumeral`.
 
 ```mermaid
 flowchart TB

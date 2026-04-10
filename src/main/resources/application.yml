@@ -47,4 +47,5 @@ app:
     value: ${APP_API_KEY:}
   range-executor:
     threads: ${RANGE_EXECUTOR_THREADS:0}
+    queue-capacity: ${RANGE_EXECUTOR_QUEUE_CAPACITY:5000}
 

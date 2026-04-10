@@ -7,7 +7,9 @@ public final class RomanDtos {
 
   public record ConversionItem(String input, String output) {}
 
-  public record SingleResponse(String input, String output) {}
+  public sealed interface RomanResponse permits SingleResponse, RangeResponse {}
 
-  public record RangeResponse(List<ConversionItem> conversions) {}
+  public record SingleResponse(String input, String output) implements RomanResponse {}
+
+  public record RangeResponse(List<ConversionItem> conversions) implements RomanResponse {}
 }

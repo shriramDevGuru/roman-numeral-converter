@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 class ApiKeyAuthFilterTest {
+  private final ObjectMapper mapper = new ObjectMapper();
 
   @AfterEach
   void clearSecurityContext() {
@@ -22,7 +24,7 @@ class ApiKeyAuthFilterTest {
 
   @Test
   void skipsPublicPaths() throws Exception {
-    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "k");
+    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "k", mapper);
     FilterChain chain = mock(FilterChain.class);
 
     MockHttpServletRequest req = new MockHttpServletRequest("GET", "/swagger-ui/index.html");
@@ -34,7 +36,7 @@ class ApiKeyAuthFilterTest {
 
   @Test
   void skipsActuatorHealth() throws Exception {
-    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "k");
+    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "k", mapper);
     FilterChain chain = mock(FilterChain.class);
 
     MockHttpServletRequest req = new MockHttpServletRequest("GET", "/actuator/health");
@@ -46,7 +48,7 @@ class ApiKeyAuthFilterTest {
 
   @Test
   void skipsV3ApiDocs() throws Exception {
-    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "k");
+    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "k", mapper);
     FilterChain chain = mock(FilterChain.class);
 
     MockHttpServletRequest req = new MockHttpServletRequest("GET", "/v3/api-docs");
@@ -58,7 +60,7 @@ class ApiKeyAuthFilterTest {
 
   @Test
   void returns401WhenExpectedKeyIsNull() throws Exception {
-    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", null);
+    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", null, mapper);
     FilterChain chain = mock(FilterChain.class);
 
     MockHttpServletRequest req = new MockHttpServletRequest("GET", "/romannumeral");
@@ -72,7 +74,7 @@ class ApiKeyAuthFilterTest {
 
   @Test
   void returns401WhenPresentedKeyDoesNotMatch() throws Exception {
-    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "expected");
+    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "expected", mapper);
     FilterChain chain = mock(FilterChain.class);
 
     MockHttpServletRequest req = new MockHttpServletRequest("GET", "/romannumeral");
@@ -86,7 +88,7 @@ class ApiKeyAuthFilterTest {
 
   @Test
   void returns401WhenPresentedKeyIsBlank() throws Exception {
-    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "expected");
+    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "expected", mapper);
     FilterChain chain = mock(FilterChain.class);
 
     MockHttpServletRequest req = new MockHttpServletRequest("GET", "/romannumeral");
@@ -100,7 +102,7 @@ class ApiKeyAuthFilterTest {
 
   @Test
   void readsConfiguredHeaderName() throws Exception {
-    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("custom-key", "secret");
+    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("custom-key", "secret", mapper);
     FilterChain chain = mock(FilterChain.class);
 
     MockHttpServletRequest req = new MockHttpServletRequest("GET", "/romannumeral");
@@ -114,7 +116,7 @@ class ApiKeyAuthFilterTest {
 
   @Test
   void returns401WhenServerKeyNotConfigured() throws Exception {
-    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "");
+    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "", mapper);
     FilterChain chain = mock(FilterChain.class);
 
     MockHttpServletRequest req = new MockHttpServletRequest("GET", "/romannumeral");
@@ -127,7 +129,7 @@ class ApiKeyAuthFilterTest {
 
   @Test
   void returns401WhenKeyMissingOrInvalid() throws Exception {
-    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "expected");
+    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "expected", mapper);
     FilterChain chain = mock(FilterChain.class);
 
     MockHttpServletRequest req = new MockHttpServletRequest("GET", "/romannumeral");
@@ -140,7 +142,7 @@ class ApiKeyAuthFilterTest {
 
   @Test
   void allowsRequestAndSetsAuthenticationWhenKeyValid() throws Exception {
-    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "expected");
+    ApiKeyAuthFilter filter = new ApiKeyAuthFilter("x-api-key", "expected", mapper);
     FilterChain chain = mock(FilterChain.class);
 
     MockHttpServletRequest req = new MockHttpServletRequest("GET", "/romannumeral");

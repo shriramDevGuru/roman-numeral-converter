@@ -6,6 +6,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -23,11 +25,12 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
   private final String headerName;
   private final String expectedValue;
   private final AntPathMatcher matcher = new AntPathMatcher();
-  private final ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper;
 
-  public ApiKeyAuthFilter(String headerName, String expectedValue) {
+  public ApiKeyAuthFilter(String headerName, String expectedValue, ObjectMapper mapper) {
     this.headerName = headerName;
     this.expectedValue = expectedValue;
+    this.mapper = mapper;
   }
 
   @Override
@@ -57,7 +60,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     }
 
     String presented = request.getHeader(headerName);
-    if (presented == null || presented.isBlank() || !presented.equals(expectedValue)) {
+    if (presented == null || presented.isBlank() || !matches(presented, expectedValue)) {
       log.warn("auth_failed reason=invalid_api_key path={}", request.getRequestURI());
       reject(response, "unauthorized");
       return;
@@ -74,5 +77,11 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     mapper.writeValue(response.getWriter(), Map.of("error", message));
+  }
+
+  private static boolean matches(String presented, String expected) {
+    byte[] a = presented.getBytes(StandardCharsets.UTF_8);
+    byte[] b = expected.getBytes(StandardCharsets.UTF_8);
+    return MessageDigest.isEqual(a, b);
   }
 }

@@ -3,9 +3,9 @@ package com.example.romanapi.config;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadPoolExecutor;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 class AsyncConfigTest {
 
@@ -16,9 +16,9 @@ class AsyncConfigTest {
     AsyncConfig cfg = new AsyncConfig(env);
     Executor ex = cfg.rangeExecutor();
 
-    ThreadPoolExecutor tpe = (ThreadPoolExecutor) ex;
+    ThreadPoolTaskExecutor tpe = (ThreadPoolTaskExecutor) ex;
     assertEquals(true, tpe.getCorePoolSize() >= 2);
-    tpe.shutdownNow();
+    tpe.shutdown();
   }
 
   @Test
@@ -29,8 +29,8 @@ class AsyncConfigTest {
     AsyncConfig cfg = new AsyncConfig(env);
     Executor ex = cfg.rangeExecutor();
 
-    ThreadPoolExecutor tpe = (ThreadPoolExecutor) ex;
+    ThreadPoolTaskExecutor tpe = (ThreadPoolTaskExecutor) ex;
     assertEquals(5, tpe.getCorePoolSize());
-    tpe.shutdownNow();
+    tpe.shutdown();
   }
 }

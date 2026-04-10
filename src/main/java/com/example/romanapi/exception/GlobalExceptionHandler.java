@@ -8,6 +8,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -15,15 +17,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
   private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-  private final ApiMetrics metrics;
 
-  public GlobalExceptionHandler(ApiMetrics metrics) {
-    this.metrics = metrics;
-  }
+  public GlobalExceptionHandler(ApiMetrics metrics) {}
 
   @ExceptionHandler(InvalidRequestException.class)
   public ResponseEntity<Map<String, String>> handleInvalidRequest(InvalidRequestException ex) {
-    metrics.incInvalid();
     log.warn("validation_failed message={}", ex.getMessage());
     return json(HttpStatus.BAD_REQUEST, ex.getMessage());
   }
@@ -31,14 +29,12 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(MissingServletRequestParameterException.class)
   public ResponseEntity<Map<String, String>> handleMissingParam(
       MissingServletRequestParameterException ex) {
-    metrics.incInvalid();
     log.warn("validation_failed message={}", "missing required parameters");
     return json(HttpStatus.BAD_REQUEST, "missing required parameters");
   }
 
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
-    metrics.incInvalid();
     log.warn("validation_failed message={}", ex.getMessage());
     return json(HttpStatus.BAD_REQUEST, ex.getMessage());
   }
@@ -49,9 +45,9 @@ public class GlobalExceptionHandler {
     return json(HttpStatus.INTERNAL_SERVER_ERROR, "internal server error");
   }
 
-  private ResponseEntity<Map<String, String>> json(HttpStatus status, String message) {
+  private ResponseEntity<Map<String, String>> json(@NonNull HttpStatusCode status, String message) {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
-    return new ResponseEntity<>(Map.of("error", message), headers, status);
+    return ResponseEntity.status(status).headers(headers).body(Map.of("error", message));
   }
 }

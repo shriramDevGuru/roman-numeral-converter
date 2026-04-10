@@ -1,6 +1,7 @@
 package com.example.romanapi.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import com.example.romanapi.dto.RomanDtos.RangeResponse;
 import java.util.concurrent.Executor;
@@ -19,5 +20,13 @@ class RomanNumeralServiceTest {
     assertEquals("I", res.conversions().get(0).output());
     assertEquals("5", res.conversions().get(4).input());
     assertEquals("V", res.conversions().get(4).output());
+  }
+
+  @Test
+  void largerRangeDoesNotRejectWhenExecutorAppliesBackpressure() {
+    Executor sameThread = Runnable::run;
+    RomanNumeralService service = new RomanNumeralService(sameThread);
+
+    assertDoesNotThrow(() -> service.convertRange(1, 500));
   }
 }

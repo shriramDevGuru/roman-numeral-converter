@@ -1,6 +1,7 @@
 package com.example.romanapi.controller;
 
 import com.example.romanapi.dto.RomanDtos.RangeResponse;
+import com.example.romanapi.dto.RomanDtos.RomanResponse;
 import com.example.romanapi.dto.RomanDtos.SingleResponse;
 import com.example.romanapi.service.RomanNumeralService;
 import com.example.romanapi.validator.RomanRequestValidator;
@@ -22,7 +23,7 @@ public class RomanNumeralController {
   }
 
   @GetMapping("/romannumeral")
-  public ResponseEntity<?> convert(
+  public ResponseEntity<RomanResponse> convert(
       @RequestParam(name = "query") Optional<Integer> query,
       @RequestParam(name = "min") Optional<Integer> min,
       @RequestParam(name = "max") Optional<Integer> max) {
