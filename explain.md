@@ -4,7 +4,7 @@
 
 Stateless Spring Boot service: integers in **1–3999** become Roman numerals over HTTP. Conversion and request rules live in plain Java; the framework handles transport, auth, and telemetry. There is nothing to persist or coordinate across requests, so the design stays intentionally small.
 
-The implementation prioritizes correctness and a small, reviewable footprint for the assessment. It also includes a few production-oriented touches such as API security, metrics, and request correlation..
+The implementation prioritizes correctness and a small, reviewable footprint for the assessment. It also includes a few production-oriented touches such as API security, metrics, and request correlation.
 
 ## 2. API Design Decisions
 
@@ -59,3 +59,35 @@ No database: outputs are derived from inputs only, so nothing needs durable stor
 - Add alerting on existing metrics (latency, error rate, request volume) to detect issues early.
 - Deploy to a cloud environment (e.g., AWS) with autoscaling and load balancing for better scalability.
 - Introduce CI/CD pipelines to automate build, test, and deployment processes.
+
+## Use of AI
+
+I used AI to speed up planning and implementation, not to replace judgment. I owned the design, correctness, trade-offs, and what went into the final submission.
+
+### 1. Tools used
+- Cursor AI: primary IDE with AI-assisted development; used for multi-file edits and iterative changes across the codebase
+- ChatGPT (OpenAI): used for structured planning, approach validation, trade-off discussion, and refining explanations
+
+### 2. How AI was used
+
+- Planning and requirements breakdown (API behavior, edge cases)
+- Scaffolding and boilerplate support
+- Debugging help and issue walkthroughs
+- Documentation refinement (README.md, explain.md)
+- Light code review support (sanity-checking approaches and alternatives)
+
+### 3. What I owned directly
+
+- Core Roman numeral conversion logic and how it behaves for valid inputs
+- Time complexity analysis for conversion and range handling
+- API design and validation (single vs range, errors)
+- Concurrency and trade-off reasoning for range requests (ordering, parallelism, bounds)
+- Observability, security scope, and overall project scope
+- Final decision-making: what to accept, change, or reject from AI output
+
+### 4. Verification and review process
+
+- Design-first: clarified behavior before writing much code
+- Manually reviewed AI suggestions and generated edits before keeping them
+- Refined code and docs for consistency with the intended structure and style
+- Tested the service and validated behavior end to end, including representative valid and invalid cases
