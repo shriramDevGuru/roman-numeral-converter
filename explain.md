@@ -64,6 +64,8 @@ No database: outputs are derived from inputs only, so nothing needs durable stor
 
 I used AI to speed up planning and implementation, not to replace judgment. I owned the design, correctness, trade-offs, and what went into the final submission.
 
+I chose this approach to accelerate repetitive tasks (such as scaffolding and documentation) while keeping control over design decisions, algorithm reasoning, and system behavior. This allowed me to focus on correctness, clarity, and trade-offs rather than boilerplate work.
+
 ### 1. Tools used
 - Cursor AI: primary IDE with AI-assisted development; used for multi-file edits and iterative changes across the codebase
 - ChatGPT (OpenAI): used for structured planning, approach validation, trade-off discussion, and refining explanations
